@@ -3,7 +3,8 @@ import AppKit
 
 struct MenuContent: View {
     @ObservedObject var state: AppState
-    @State private var newHostAlias = ""
+    @State private var manualAlias = ""
+    @State private var showManualEntry = false
     @State private var startAtLogin = LoginItem.isEnabled
 
     var body: some View {
@@ -22,21 +23,14 @@ struct MenuContent: View {
             } else {
                 ForEach(state.store.hosts) { host in
                     HostRow(
+                        state: state,
                         host: host,
-                        status: state.statuses[host.alias] ?? .unknown,
-                        onCopySnippet: { copySnippet(for: host.alias) },
                         onRemove: { state.store.removeHost(alias: host.alias) }
                     )
                 }
             }
 
-            HStack {
-                TextField("host alias", text: $newHostAlias)
-                    .textFieldStyle(.roundedBorder)
-                    .onSubmit(addHost)
-                Button("Add", action: addHost)
-                    .disabled(newHostAlias.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
+            addHostControl
 
             Divider()
 
@@ -50,18 +44,39 @@ struct MenuContent: View {
             }
         }
         .padding(12)
-        .frame(width: 320)
+        .frame(width: 340)
     }
 
-    private func addHost() {
-        state.store.addHost(alias: newHostAlias)
-        newHostAlias = ""
+    @ViewBuilder
+    private var addHostControl: some View {
+        let discovered = state.discoverableHosts
+        if showManualEntry {
+            HStack {
+                TextField("host alias", text: $manualAlias)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit(addManualHost)
+                Button("Add", action: addManualHost)
+                    .disabled(manualAlias.trimmingCharacters(in: .whitespaces).isEmpty)
+                Button("Cancel") { showManualEntry = false }
+            }
+        } else if discovered.isEmpty {
+            Button("Add Host…") { showManualEntry = true }
+                .font(.caption)
+        } else {
+            Menu("Add Host") {
+                ForEach(discovered, id: \.self) { alias in
+                    Button(alias) { state.store.addHost(alias: alias) }
+                }
+                Divider()
+                Button("Type manually…") { showManualEntry = true }
+            }
+            .font(.caption)
+        }
     }
 
-    private func copySnippet(for alias: String) {
-        let snippet = "RemoteForward 47000 127.0.0.1:47000"
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(snippet, forType: .string)
+    private func addManualHost() {
+        state.store.addHost(alias: manualAlias)
+        manualAlias = ""
+        showManualEntry = false
     }
 }

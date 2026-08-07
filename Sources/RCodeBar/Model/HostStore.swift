@@ -22,7 +22,9 @@ final class HostStore: ObservableObject {
         self.hosts = Self.load(from: defaults)
     }
 
-    var whitelist: Set<String> { Set(hosts.map(\.alias)) }
+    // Disabled hosts must be rejected exactly like unknown ones — the
+    // listener whitelist is this set, so excluding them here is sufficient.
+    var whitelist: Set<String> { Set(hosts.filter(\.enabled).map(\.alias)) }
 
     func addHost(alias: String) {
         let trimmed = alias.trimmingCharacters(in: .whitespaces)
@@ -40,6 +42,24 @@ final class HostStore: ObservableObject {
         guard let index = hosts.firstIndex(where: { $0.alias == host }) else { return }
         hosts[index].lastOpenDate = date
         hosts[index].lastOpenPath = path
+        persist()
+    }
+
+    func setEnabled(alias: String, enabled: Bool) {
+        guard let index = hosts.firstIndex(where: { $0.alias == alias }) else { return }
+        hosts[index].enabled = enabled
+        persist()
+    }
+
+    func setDisplayName(alias: String, name: String) {
+        guard let index = hosts.firstIndex(where: { $0.alias == alias }) else { return }
+        hosts[index].displayName = name.trimmingCharacters(in: .whitespaces)
+        persist()
+    }
+
+    func setDefaultPath(alias: String, path: String) {
+        guard let index = hosts.firstIndex(where: { $0.alias == alias }) else { return }
+        hosts[index].defaultPath = path.trimmingCharacters(in: .whitespaces)
         persist()
     }
 

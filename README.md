@@ -38,9 +38,15 @@ it needs to spawn `ssh` and open URLs), and prints the ssh config snippet
 for `<host-alias>`. It never edits your ssh config for you.
 
 1. Launch the app: `open ~/Applications/RCodeBar.app`.
-2. Add `<host-alias>` from the popover ("Add" field).
-3. Add the printed `RemoteForward 47000 127.0.0.1:47000` line to that host's
-   `Host` block in your ssh config (e.g. under `~/.ssh/config.d/`).
+2. Add `<host-alias>` from the popover's "Add Host" menu — it's populated by
+   parsing `~/.ssh/config` (following `Include`), so real host aliases are a
+   selection, not typing. "Type manually…" is the fallback for anything the
+   parser misses.
+3. Expand the host's row (chevron) — it tells you whether the RemoteForward
+   is already there. If not, "Add RemoteForward…" shows the exact file it
+   would create and writes it only after you confirm; it never edits an
+   existing file. Or add the printed `RemoteForward 47000 127.0.0.1:47000`
+   line yourself, under `~/.ssh/config.d/`.
 4. Drop the existing ControlMaster so the new forward takes effect:
    `ssh -O exit <host-alias>`. Reconnect (any new ssh session, or just run
    `code .` on the pod) to pick up the forward.
@@ -52,10 +58,26 @@ for `<host-alias>`. It never edits your ssh config for you.
 
 ## Adding another host
 
-Same shape every time: add a `RemoteForward 47000 127.0.0.1:47000` line to
-that host's ssh config block, add the alias in the popover ("Copy ssh
-config snippet" gives you the line for any registered host), drop its
-ControlMaster once. No new port, no app changes.
+Same shape every time: pick the alias from "Add Host" (or type it), confirm
+the RemoteForward write from the expanded row (or add the
+`RemoteForward 47000 127.0.0.1:47000` line yourself), drop its ControlMaster
+once. No new port, no app changes.
+
+## Per-host row details
+
+Expanding a row (chevron) gives you:
+
+- **Display name** — cosmetic only, defaults to the alias.
+- **Default path** + **Open** — opens that path on that host directly from
+  the Mac, without going through the pod at all. Handy for testing.
+- **Enabled** — a disabled host is rejected by the listener exactly like an
+  unknown one (`ERR unknown host`); it's still in your list, just inert.
+- **Test Now** — runs the status probe immediately instead of waiting for
+  the 30s cycle. When the result isn't green, the last few lines of ssh's
+  stderr are shown next to it.
+- **RemoteForward status** — asks `ssh -G <host>` (which resolves `Include`
+  and patterns the same way ssh itself does) whether the forward for our
+  port is present, and offers to add it if not.
 
 ## Diagnosing a failure
 
@@ -83,7 +105,8 @@ opening a window:
 ## Tests
 
 ```
-swift test                    # unit: URI parsing, host whitelist, 4 KiB cap
+swift test                    # unit: URI parsing, host whitelist, 4 KiB cap,
+                               # ssh config discovery, RemoteForward detection
 scripts/e2e_test.sh <host>    # end-to-end against a running listener
 ```
 
