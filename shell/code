@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# code — open a path in local VS Code from any pod shell (ssh/tmux).
+#
+# Preferred loop:
+#   Mac:    rcode          # attach Remote-SSH once
+#   remote: code .         # open path in that window (this script)
+#
+# Reuse path: a Remote-SSH window is already connected — find its live IPC
+# socket (probed with `code --status`; --version false-passes) and open there.
+# Full flag passthrough.
+# Cold path: no live window — try RCodeBar's TCP channel (127.0.0.1:47000 via
+# the RemoteForward), which asks the Mac to open the window directly. If that
+# fails or isn't wired up, fall back to printing a cmd-clickable vscode://
+# link (OSC-8 + bare URI). Needs the Mac-side ssh alias in ~/.rcode.host (or
+# $RCODE_HOST); the pod hostname is NOT the alias, never derived from it. Or
+# run `rcode` on the Mac to attach a window, then retry `code .` here.
+set -uo pipefail
+
+err() { echo "code: $*" >&2; }
+
+# Bare `code` means "open here" — default before either path so reuse and
+# cold-open agree.
+[ $# -eq 0 ] && set -- "$PWD"
+
+bin=$(ls -td "$HOME"/.vscode-server/cli/servers/*/server/bin/remote-cli/code 2>/dev/null | head -1)
+[ -z "$bin" ] && bin=$(ls -td "$HOME"/.vscode-server/bin/*/bin/remote-cli/code 2>/dev/null | head -1)
+
+probe() { timeout 3 env VSCODE_IPC_HOOK_CLI="$1" "$bin" --status >/dev/null 2>&1; }
+
+if [ -n "$bin" ]; then
+  if [ -n "${VSCODE_IPC_HOOK_CLI:-}" ] && probe "$VSCODE_IPC_HOOK_CLI"; then
+    exec "$bin" "$@"
+  fi
+  for sock in $(ls -t /tmp/vscode-ipc-*.sock "/run/user/$(id -u)"/vscode-ipc-*.sock 2>/dev/null); do
+    [ -O "$sock" ] || continue          # never touch another user's socket
+    probe "$sock"; rc=$?
+    # 0 = live. 124 = --status timed out on a busy/indexing window that is
+    # still alive — open works on those sockets too (verified: remote-cli
+    # returns 0 while --status hangs past 3s). Previously we only kept the
+    # socket on 124 and fell through to cold-path URI, so `code .` "did
+    # nothing" whenever the newest window was busy.
+    if [ "$rc" = 0 ] || [ "$rc" = 124 ]; then
+      exec env VSCODE_IPC_HOOK_CLI="$sock" "$bin" "$@"
+    fi
+    # Definitive connect failure only — GC the dead socket.
+    rm -f "$sock"
+  done
+fi
+
+# ── cold path: no live window ─────────────────────────────────────────────────
+
+for a in "$@"; do
+  case "$a" in
+    --) break ;;                        # end-of-flags terminator; rest are paths
+    -*) err "no live VS Code window on this pod — '$a' needs one. Open a window first (or drop the flag)."
+        exit 1;;
+  esac
+done
+
+host="${RCODE_HOST:-$(cat "$HOME/.rcode.host" 2>/dev/null || true)}"
+if [ -z "$host" ]; then
+  err "~/.rcode.host missing — put your Mac-side ssh alias for this pod in it:"
+  err "  echo ldev > ~/.rcode.host   # = the Host you 'ssh <alias>' with FROM the Mac, not this pod's hostname"
+  exit 1
+fi
+
+# Push a URI at RCodeBar's listener over the RemoteForward. "OK" means the
+# Mac app opened the window itself; anything else (bad reply, no listener,
+# no forward) must fall through to the printed-link path, never silently
+# swallow the request.
+try_remote_open() {
+  local uri="$1" reply
+  exec 3<>/dev/tcp/127.0.0.1/47000 2>/dev/null || return 1
+  printf '%s\n' "$uri" >&3
+  IFS= read -r -t 3 reply <&3
+  exec 3<&- 3>&-
+  [ "$reply" = "OK" ]
+}
+
+for arg in "$@"; do
+  [ "$arg" = "--" ] && continue         # skip the terminator, open the paths after it
+  target=$(realpath -e -- "$arg" 2>/dev/null) || { err "no such path: $arg"; exit 1; }
+  uri="vscode://vscode-remote/ssh-remote+${host}${target}"
+
+  try_remote_open "$uri" && continue
+
+  # OSC-8 hyperlink line + bare URI line (bare survives terminals/tmux without OSC-8)
+  printf '\e]8;;%s\e\\Open in VS Code: %s\e]8;;\e\\\n' "$uri" "$target"
+  printf '%s\n' "$uri"
+done
