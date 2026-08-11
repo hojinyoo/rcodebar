@@ -101,13 +101,12 @@ struct MenuContent: View {
                 .onSubmit(addManualHost)
             Button("Add", action: addManualHost)
                 .disabled(manualAlias.trimmingCharacters(in: .whitespaces).isEmpty)
-            Button("Cancel") {
-                manualAlias = ""
-                showManualEntry = false
-            }
+            Button("Cancel", action: cancelManualEntry)
         }
         .controlSize(.small)
         .onAppear { manualFieldFocused = true }
+        // Esc cancels the entry rather than closing the whole popover.
+        .onExitCommand(perform: cancelManualEntry)
     }
 
     @ViewBuilder
@@ -120,6 +119,7 @@ struct MenuContent: View {
                 Image(systemName: "plus")
             }
             .buttonStyle(.borderless)
+            .accessibilityLabel("Add host")
             .help("Add a host by alias")
         } else {
             Menu {
@@ -134,12 +134,18 @@ struct MenuContent: View {
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
             .fixedSize()
+            .accessibilityLabel("Add host")
             .help("Add a host from ~/.ssh/config")
         }
     }
 
     private func addManualHost() {
         state.store.addHost(alias: manualAlias)
+        manualAlias = ""
+        showManualEntry = false
+    }
+
+    private func cancelManualEntry() {
         manualAlias = ""
         showManualEntry = false
     }

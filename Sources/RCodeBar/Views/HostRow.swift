@@ -6,6 +6,8 @@ struct HostRow: View {
     let host: RemoteHost
     let onRemove: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     @State private var expanded = false
     @State private var hovering = false
     @State private var copied = false
@@ -50,7 +52,7 @@ struct HostRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Button {
-                withAnimation(.easeInOut(duration: 0.15)) { expanded.toggle() }
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.15)) { expanded.toggle() }
                 if expanded { state.checkForward(alias: host.alias) }
             } label: {
                 summary
@@ -63,10 +65,31 @@ struct HostRow: View {
             .onHover { hovering = $0 }
             .accessibilityLabel("\(host.effectiveDisplayName), \(statusLabel)")
             .accessibilityHint(expanded ? "Collapse details" : "Expand details")
+            .contextMenu {
+                Button("Test Now") { state.testNow(alias: host.alias) }
+                Button("Copy RemoteForward Snippet", action: copySnippet)
+                Divider()
+                Button("Remove Host…", role: .destructive) { showRemoveConfirm = true }
+            }
 
             if expanded {
                 detailPanel
             }
+        }
+        // Not on detailPanel: the context menu can ask to remove a collapsed
+        // row, and a dialog attached to a view that isn't there never shows.
+        .confirmationDialog(
+            "Remove \(host.effectiveDisplayName)?",
+            isPresented: $showRemoveConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Remove Host", role: .destructive, action: onRemove)
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("""
+            RCodeBar will stop opening windows for \(host.alias), and its display name and \
+            default path are forgotten. Your ssh config is left untouched.
+            """)
         }
     }
 
@@ -172,19 +195,6 @@ struct HostRow: View {
             Button("OK") {}
         } message: {
             Text(addForwardMessage)
-        }
-        .confirmationDialog(
-            "Remove \(host.effectiveDisplayName)?",
-            isPresented: $showRemoveConfirm,
-            titleVisibility: .visible
-        ) {
-            Button("Remove Host", role: .destructive, action: onRemove)
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("""
-            RCodeBar will stop opening windows for \(host.alias), and its display name and \
-            default path are forgotten. Your ssh config is left untouched.
-            """)
         }
     }
 
