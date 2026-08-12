@@ -6,9 +6,12 @@ struct HostRow: View {
     let host: RemoteHost
     let onRemove: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     @State private var expanded = false
-    @State private var displayName = ""
-    @State private var defaultPath = ""
+    @State private var hovering = false
+    @State private var copied = false
+    @State private var showRemoveConfirm = false
     @State private var showAddForwardConfirm = false
     @State private var showAddForwardResult = false
     @State private var addForwardMessage = ""
@@ -17,101 +20,177 @@ struct HostRow: View {
     private var detail: String? { state.probeResults[host.alias]?.detail }
     private var hasForward: Bool? { state.forwardStatus[host.alias] }
 
-    private var dotColor: Color {
+    // Distinct shape per status, not just hue — the dot has to stay readable
+    // for a colour-blind reader and in a greyscale screenshot.
+    private var statusIcon: (name: String, color: Color) {
+        guard host.enabled else { return ("slash.circle", .secondary) }
         switch status {
-        case .green: return .green
-        case .amber: return .yellow
-        case .grey: return .gray
-        case .unknown: return .gray.opacity(0.4)
+        case .green: return ("checkmark.circle.fill", .green)
+        case .amber: return ("exclamationmark.triangle.fill", .orange)
+        case .grey: return ("xmark.circle.fill", .secondary)
+        case .unknown: return ("circle.dotted", .secondary)
         }
+    }
+
+    private var statusLabel: String { host.enabled ? status.label : "Disabled" }
+
+    private var lastOpenSummary: String {
+        guard let path = host.lastOpenPath, let date = host.lastOpenDate else { return "never opened" }
+        return "\(path) · \(date.formatted(.relative(presentation: .named)))"
+    }
+
+    /// The row can be truncated and renamed, so the tooltip is where the full
+    /// alias, status and absolute open time stay reachable.
+    private var rowTooltip: String {
+        var lines = ["ssh: \(host.alias)", statusLabel]
+        if let path = host.lastOpenPath, let date = host.lastOpenDate {
+            lines.append("last opened \(path)\n\(date.formatted(date: .abbreviated, time: .shortened))")
+        }
+        return lines.joined(separator: "\n")
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .top) {
-                Circle()
-                    .fill(dotColor)
-                    .frame(width: 8, height: 8)
-                    .padding(.top, 5)
-                    .help(status.label)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(host.effectiveDisplayName).font(.system(size: 13, weight: .medium))
-                    if let path = host.lastOpenPath, let date = host.lastOpenDate {
-                        Text("\(path) · \(date.formatted(date: .omitted, time: .shortened))")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    } else {
-                        Text("never opened")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                Spacer()
-
-                Button {
-                    expanded.toggle()
-                    if expanded { state.checkForward(alias: host.alias) }
-                } label: {
-                    Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                }
-                .buttonStyle(.borderless)
-
-                Button(role: .destructive, action: onRemove) {
-                    Image(systemName: "minus.circle")
-                }
-                .buttonStyle(.borderless)
+            Button {
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.15)) { expanded.toggle() }
+                if expanded { state.checkForward(alias: host.alias) }
+            } label: {
+                summary
+            }
+            .buttonStyle(.plain)
+            .background(
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(hovering ? Color.primary.opacity(0.07) : .clear)
+            )
+            .onHover { hovering = $0 }
+            .accessibilityLabel("\(host.effectiveDisplayName), \(statusLabel)")
+            .accessibilityHint(expanded ? "Collapse details" : "Expand details")
+            .contextMenu {
+                Button("Test Now") { state.testNow(alias: host.alias) }
+                Button("Copy RemoteForward Snippet", action: copySnippet)
+                Divider()
+                Button("Remove Host…", role: .destructive) { showRemoveConfirm = true }
             }
 
             if expanded {
                 detailPanel
             }
         }
-        .padding(.vertical, 2)
-        .onAppear {
-            displayName = host.displayName ?? ""
-            defaultPath = host.defaultPath ?? ""
+        // Not on detailPanel: the context menu can ask to remove a collapsed
+        // row, and a dialog attached to a view that isn't there never shows.
+        .confirmationDialog(
+            "Remove \(host.effectiveDisplayName)?",
+            isPresented: $showRemoveConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Remove Host", role: .destructive, action: onRemove)
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("""
+            RCodeBar will stop opening windows for \(host.alias), and its display name and \
+            default path are forgotten. Your ssh config is left untouched.
+            """)
         }
     }
 
-    private var detailPanel: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            TextField("Display name", text: $displayName)
-                .textFieldStyle(.roundedBorder)
-                .onSubmit { state.store.setDisplayName(alias: host.alias, name: displayName) }
+    private var summary: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: statusIcon.name)
+                .foregroundStyle(statusIcon.color)
 
-            HStack {
-                TextField("Default path (e.g. /home/jovyan/project)", text: $defaultPath)
-                    .textFieldStyle(.roundedBorder)
-                    .onSubmit { state.store.setDefaultPath(alias: host.alias, path: defaultPath) }
-                Button("Open") { state.openNow(host: host) }
-                    .disabled(defaultPath.trimmingCharacters(in: .whitespaces).isEmpty)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(host.effectiveDisplayName)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(host.enabled ? .primary : .secondary)
+                Text(lastOpenSummary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
             }
 
-            Toggle("Enabled", isOn: Binding(
-                get: { host.enabled },
-                set: { state.store.setEnabled(alias: host.alias, enabled: $0) }
-            ))
+            Spacer(minLength: 4)
 
-            HStack {
-                Button("Test Now") { state.testNow(alias: host.alias) }
+            Image(systemName: "chevron.right")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .rotationEffect(.degrees(expanded ? 90 : 0))
+        }
+        .padding(.vertical, 5)
+        .padding(.horizontal, 6)
+        .contentShape(Rectangle())
+        .help(rowTooltip)
+    }
+
+    private var detailPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 6) {
+                GridRow {
+                    Text("Display name")
+                        .font(.caption)
+                        .gridColumnAlignment(.trailing)
+                    EditableField(prompt: host.alias, value: host.displayName ?? "") {
+                        state.store.setDisplayName(alias: host.alias, name: $0)
+                    }
+                }
+                GridRow {
+                    Text("Default path")
+                        .font(.caption)
+                    HStack(spacing: 6) {
+                        EditableField(prompt: "/home/jovyan/project", value: host.defaultPath ?? "") {
+                            state.store.setDefaultPath(alias: host.alias, path: $0)
+                        }
+                        Button("Open") { state.openNow(host: host) }
+                            .disabled((host.defaultPath ?? "").isEmpty)
+                    }
+                }
+                GridRow {
+                    Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                    Toggle("Allow auto-open", isOn: Binding(
+                        get: { host.enabled },
+                        set: { state.store.setEnabled(alias: host.alias, enabled: $0) }
+                    ))
+                    .help("A disabled host is rejected by the listener exactly like an unknown one.")
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Tunnel")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+
+                HStack(alignment: .firstTextBaseline) {
+                    Label {
+                        Text(statusLabel)
+                    } icon: {
+                        Image(systemName: statusIcon.name).foregroundStyle(statusIcon.color)
+                    }
+                    Spacer()
+                    Button("Test Now") { state.testNow(alias: host.alias) }
+                }
+                .font(.caption)
+
                 if status != .green, let detail {
                     Text(detail)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                        .lineLimit(3)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
+
+                forwardRow
             }
 
-            forwardRow
-
-            Button("Copy Snippet", action: copySnippet)
-                .buttonStyle(.link)
-                .font(.caption)
+            HStack {
+                Spacer()
+                Button("Remove Host…", role: .destructive) { showRemoveConfirm = true }
+                    .font(.caption)
+            }
         }
-        .padding(.leading, 16)
+        .controlSize(.small)
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.05)))
         .alert("RemoteForward added", isPresented: $showAddForwardResult) {
             Button("OK") {}
         } message: {
@@ -123,19 +202,25 @@ struct HostRow: View {
         Group {
             switch hasForward {
             case .none:
-                Text("Checking RemoteForward…").font(.caption).foregroundStyle(.secondary)
+                Text("Checking RemoteForward…")
+                    .foregroundStyle(.secondary)
             case .some(true):
                 Label("RemoteForward configured", systemImage: "checkmark.circle")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .foregroundStyle(.secondary)
             case .some(false):
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     Label("RemoteForward missing", systemImage: "exclamationmark.triangle")
-                        .font(.caption).foregroundStyle(.orange)
-                    Button("Add RemoteForward…") { showAddForwardConfirm = true }
-                        .font(.caption)
+                        .foregroundStyle(.orange)
+                    HStack(spacing: 6) {
+                        Button("Add RemoteForward…") { showAddForwardConfirm = true }
+                        Button(copied ? "Copied" : "Copy Snippet",
+                               systemImage: copied ? "checkmark" : "doc.on.doc",
+                               action: copySnippet)
+                    }
                 }
             }
         }
+        .font(.caption)
         .confirmationDialog(
             "Write ~/.ssh/config.d/rcodebar-\(host.alias)?",
             isPresented: $showAddForwardConfirm,
@@ -171,5 +256,39 @@ struct HostRow: View {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(snippet, forType: .string)
+        copied = true
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.5))
+            copied = false
+        }
+    }
+}
+
+/// Commits on every keystroke instead of only `.onSubmit`: this popover can be
+/// dismissed without the field ever resigning first responder, and an edit
+/// silently dropped on close is worse than an extra UserDefaults write.
+private struct EditableField: View {
+    let prompt: String
+    let value: String
+    let commit: (String) -> Void
+
+    @State private var text: String
+    @FocusState private var focused: Bool
+
+    init(prompt: String, value: String, commit: @escaping (String) -> Void) {
+        self.prompt = prompt
+        self.value = value
+        self.commit = commit
+        _text = State(initialValue: value)
+    }
+
+    var body: some View {
+        TextField(prompt, text: $text)
+            .textFieldStyle(.roundedBorder)
+            .focused($focused)
+            .onChange(of: text) { _, new in commit(new) }
+            // Re-seed only while idle: the store trims, so echoing its value
+            // back mid-edit would eat a space the moment it's typed.
+            .onChange(of: value) { _, new in if !focused { text = new } }
     }
 }

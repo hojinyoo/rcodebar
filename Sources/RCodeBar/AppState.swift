@@ -9,13 +9,20 @@ final class AppState: ObservableObject {
 
     @Published var probeResults: [String: ProbeResult] = [:]
     @Published var forwardStatus: [String: Bool] = [:] // nil (absent) = not checked yet
+    @Published private(set) var discoveredAliases: [String] = []
 
     private var timer: Timer?
+    private var storeChanges: AnyCancellable?
 
     init() {
         let store = HostStore()
         self.store = store
         self.listener = Listener(store: store)
+        // SwiftUI does not follow a nested ObservableObject: without this the
+        // popover only picks up host/toggle edits on the next 30s probe tick.
+        storeChanges = store.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
         if store.autoOpenEnabled {
             listener.start()
         }
@@ -39,6 +46,7 @@ final class AppState: ObservableObject {
     }
 
     func refreshStatuses() {
+        discoveredAliases = SSHConfigParser.discoverHosts(from: "~/.ssh/config")
         for host in store.hosts {
             testNow(alias: host.alias)
         }
@@ -64,10 +72,11 @@ final class AppState: ObservableObject {
     }
 
     /// Hosts discovered by parsing ~/.ssh/config (following Include), minus
-    /// ones already added — feeds the popover's picker.
+    /// ones already added — feeds the popover's picker. Reads off the cached
+    /// list: parsing here would re-read the file on every render of the popover.
     var discoverableHosts: [String] {
         let existing = Set(store.hosts.map(\.alias))
-        return SSHConfigParser.discoverHosts(from: "~/.ssh/config").filter { !existing.contains($0) }
+        return discoveredAliases.filter { !existing.contains($0) }
     }
 
     /// Manual "Open" trigger from a host row's default path — same URI
