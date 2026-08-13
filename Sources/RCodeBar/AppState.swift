@@ -53,7 +53,7 @@ final class AppState: ObservableObject {
     }
 
     /// Runs the probe for one host immediately, outside the 30s cadence —
-    /// backs both the periodic refresh and the popover's "Test now" button.
+    /// backs both the periodic refresh and the popover's "Test Now" button.
     func testNow(alias: String) {
         if probeResults[alias] == nil {
             probeResults[alias] = ProbeResult(status: .unknown, detail: nil)

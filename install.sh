@@ -69,6 +69,10 @@ ${suggested_file}, alongside your existing Host config.d files):
 
     ${snippet}
 
+A file under config.d/ only counts if ~/.ssh/config includes it
+('Include ~/.ssh/config.d/*'); otherwise put the line in the Host block
+in ~/.ssh/config itself.
+
 This script will NOT edit your ssh config. After adding it, drop any
 existing ControlMaster for the host so the new RemoteForward takes effect:
 

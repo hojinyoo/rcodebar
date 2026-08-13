@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 
-/// UserDefaults-backed settings and host list — no config file, per BRIEF.md.
+/// UserDefaults-backed settings and host list — no config file.
 @MainActor
 final class HostStore: ObservableObject {
     private enum Keys {
