@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# code — open a path in local VS Code from any pod shell (ssh/tmux).
+# code — open a path in local VS Code from any remote shell (ssh/tmux).
 #
 # Preferred loop:
-#   Mac:    rcode          # attach Remote-SSH once
+#   Mac:    attach one Remote-SSH window — RCodeBar's per-host "Open", or
+#           `code --remote ssh-remote+<alias> <path>`
 #   remote: code .         # open path in that window (this script)
 #
 # Reuse path: a Remote-SSH window is already connected — find its live IPC
@@ -12,8 +13,8 @@
 # the RemoteForward), which asks the Mac to open the window directly. If that
 # fails or isn't wired up, fall back to printing a cmd-clickable vscode://
 # link (OSC-8 + bare URI). Needs the Mac-side ssh alias in ~/.rcode.host (or
-# $RCODE_HOST); the pod hostname is NOT the alias, never derived from it. Or
-# run `rcode` on the Mac to attach a window, then retry `code .` here.
+# $RCODE_HOST); this machine's hostname is NOT the alias, never derived from
+# it. Or attach a window from the Mac as above, then retry `code .` here.
 set -uo pipefail
 
 err() { echo "code: $*" >&2; }
@@ -31,6 +32,8 @@ if [ -n "$bin" ]; then
   if [ -n "${VSCODE_IPC_HOOK_CLI:-}" ] && probe "$VSCODE_IPC_HOOK_CLI"; then
     exec "$bin" "$@"
   fi
+  # shellcheck disable=SC2045
+  # Newest socket first is the whole point; a glob can't sort by mtime.
   for sock in $(ls -t /tmp/vscode-ipc-*.sock "/run/user/$(id -u)"/vscode-ipc-*.sock 2>/dev/null); do
     [ -O "$sock" ] || continue          # never touch another user's socket
     probe "$sock"; rc=$?
@@ -52,15 +55,16 @@ fi
 for a in "$@"; do
   case "$a" in
     --) break ;;                        # end-of-flags terminator; rest are paths
-    -*) err "no live VS Code window on this pod — '$a' needs one. Open a window first (or drop the flag)."
+    -*) err "no live VS Code window on this host — '$a' needs one. Open a window first (or drop the flag)."
         exit 1;;
   esac
 done
 
 host="${RCODE_HOST:-$(cat "$HOME/.rcode.host" 2>/dev/null || true)}"
 if [ -z "$host" ]; then
-  err "~/.rcode.host missing — put your Mac-side ssh alias for this pod in it:"
-  err "  echo myhost > ~/.rcode.host   # = the Host you 'ssh <alias>' with FROM the Mac, not this pod's hostname"
+  # shellcheck disable=SC2088  # prose for the reader, not a path to expand
+  err "~/.rcode.host missing — put your Mac-side ssh alias for this host in it:"
+  err "  echo myhost > ~/.rcode.host   # = the Host you 'ssh <alias>' with FROM the Mac, not this machine's hostname"
   exit 1
 fi
 

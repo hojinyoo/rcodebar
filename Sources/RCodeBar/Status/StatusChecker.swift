@@ -2,10 +2,10 @@ import Foundation
 
 struct ProbeResult: Equatable {
     var status: HostStatus
-    var detail: String? // ssh's stderr tail, only set when status isn't green
+    var detail: String?  // ssh's stderr tail, only set when status isn't green
 }
 
-/// Per-host tunnel probe from BRIEF.md:
+/// Per-host tunnel probe:
 ///   ssh -o BatchMode=yes -o ConnectTimeout=3 <host> 'exec 3<>/dev/tcp/127.0.0.1/47000'
 /// rc 0 -> green, ssh ok but that fails -> amber, ssh itself fails -> grey.
 /// Always the absolute /usr/bin/ssh: a GUI app has no shell PATH.

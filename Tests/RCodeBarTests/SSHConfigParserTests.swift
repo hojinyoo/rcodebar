@@ -1,4 +1,5 @@
 import Testing
+
 @testable import RCodeBar
 
 struct SSHConfigParserTests {
@@ -11,8 +12,8 @@ struct SSHConfigParserTests {
             Host *
                  ControlMaster auto
             """,
-            "~/.ssh/config.d/example-pods": "Host myhost myhost*\n    HostName 198.51.100.10\n",
-            "~/.ssh/config.d/example-servers": """
+            "~/.ssh/config.d/remotes": "Host myhost myhost*\n    HostName 198.51.100.10\n",
+            "~/.ssh/config.d/servers": """
             Host *_jump
                  ProxyJump jump
 
@@ -25,7 +26,7 @@ struct SSHConfigParserTests {
         ]
         let globResults: [String: [String]] = [
             "~/.ssh/config.local": [],
-            "~/.ssh/config.d/*": ["~/.ssh/config.d/example-pods", "~/.ssh/config.d/example-servers"],
+            "~/.ssh/config.d/*": ["~/.ssh/config.d/remotes", "~/.ssh/config.d/servers"],
         ]
 
         let hosts = SSHConfigParser.discoverHosts(
@@ -63,7 +64,7 @@ struct SSHConfigParserTests {
     }
 
     @Test func concreteAliasSkipsDoublyWildcardedPattern() {
-        #expect(SSHConfigParser.concreteAlias(from: ["*_jupy*"]) == nil)
+        #expect(SSHConfigParser.concreteAlias(from: ["*_relay*"]) == nil)
     }
 
     @Test func concreteAliasSkipsLeadingWildcardPattern() {

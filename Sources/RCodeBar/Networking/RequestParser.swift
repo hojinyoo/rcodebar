@@ -1,8 +1,7 @@
 import Foundation
 
-/// Result of validating one request line against the trust boundary rules
-/// in BRIEF.md: fixed prefix, host on the whitelist, nothing else ever
-/// reaches NSWorkspace.open.
+/// Result of validating one request line against the trust boundary: fixed
+/// prefix, host on the whitelist, nothing else ever reaches NSWorkspace.open.
 enum ParseResult: Equatable {
     case ok(host: String, uri: String)
     case err(String)

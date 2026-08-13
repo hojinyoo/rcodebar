@@ -1,16 +1,20 @@
 import Testing
+
 @testable import RCodeBar
 
 struct RequestParserTests {
-    let whitelist: Set<String> = ["myhost", "otherpod"]
+    let whitelist: Set<String> = ["myhost", "other"]
 
     @Test func acceptsWhitelistedHost() {
-        let result = RequestParser.parse("vscode://vscode-remote/ssh-remote+myhost/home/dev/project", whitelist: whitelist)
-        #expect(result == .ok(host: "myhost", uri: "vscode://vscode-remote/ssh-remote+myhost/home/dev/project"))
+        let result = RequestParser.parse(
+            "vscode://vscode-remote/ssh-remote+myhost/home/dev/project", whitelist: whitelist)
+        #expect(
+            result == .ok(host: "myhost", uri: "vscode://vscode-remote/ssh-remote+myhost/home/dev/project"))
     }
 
     @Test func rejectsUnknownHost() {
-        let result = RequestParser.parse("vscode://vscode-remote/ssh-remote+notregistered/x", whitelist: whitelist)
+        let result = RequestParser.parse(
+            "vscode://vscode-remote/ssh-remote+notregistered/x", whitelist: whitelist)
         #expect(result == .err("unknown host"))
     }
 
@@ -25,7 +29,8 @@ struct RequestParserTests {
     }
 
     @Test func rejectsEmptyHost() {
-        let result = RequestParser.parse("vscode://vscode-remote/ssh-remote+/etc/passwd", whitelist: whitelist)
+        let result = RequestParser.parse(
+            "vscode://vscode-remote/ssh-remote+/etc/passwd", whitelist: whitelist)
         #expect(result == .err("invalid uri"))
     }
 

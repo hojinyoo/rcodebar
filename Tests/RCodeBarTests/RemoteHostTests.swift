@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import RCodeBar
 
 struct RemoteHostTests {
@@ -16,7 +17,7 @@ struct RemoteHostTests {
     }
 
     @Test func effectiveDisplayNameUsesDisplayNameWhenSet() {
-        let host = RemoteHost(alias: "myhost", displayName: "Dev Pod")
-        #expect(host.effectiveDisplayName == "Dev Pod")
+        let host = RemoteHost(alias: "myhost", displayName: "Dev Box")
+        #expect(host.effectiveDisplayName == "Dev Box")
     }
 }

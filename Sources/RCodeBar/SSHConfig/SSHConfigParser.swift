@@ -1,5 +1,5 @@
-import Foundation
 import Darwin
+import Foundation
 
 /// Discovers host aliases by parsing ~/.ssh/config and following `Include`
 /// directives — the same files ssh itself reads, so this stays in sync with
@@ -49,9 +49,9 @@ enum SSHConfigParser {
 
     /// `Host *` and other pure-wildcard-only entries are not real, connectable
     /// hosts — skip them. `myhost myhost*` offers the concrete first token
-    /// (`myhost`); `web*` alone offers `web` (this config's own convention: the
-    /// wildcard base is itself a valid alias). Anything left wildcarded on
-    /// both ends (`*_jupy*`) is a forwarding shortcut, not a host — skipped.
+    /// (`myhost`); `web*` alone offers `web`, on the common convention that the
+    /// wildcard base is itself a valid alias. Anything left wildcarded on
+    /// both ends (`*_relay*`) is a forwarding shortcut, not a host — skipped.
     static func concreteAlias(from tokens: [String]) -> String? {
         let globChars = CharacterSet(charactersIn: "*?[]!")
         guard !tokens.isEmpty, tokens != ["*"] else { return nil }

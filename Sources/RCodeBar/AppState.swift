@@ -1,6 +1,6 @@
-import Foundation
-import Combine
 import AppKit
+import Combine
+import Foundation
 
 @MainActor
 final class AppState: ObservableObject {
@@ -8,7 +8,7 @@ final class AppState: ObservableObject {
     let listener: Listener
 
     @Published var probeResults: [String: ProbeResult] = [:]
-    @Published var forwardStatus: [String: Bool] = [:] // nil (absent) = not checked yet
+    @Published var forwardStatus: [String: Bool] = [:]  // nil (absent) = not checked yet
     @Published private(set) var discoveredAliases: [String] = []
 
     private var timer: Timer?
@@ -53,7 +53,7 @@ final class AppState: ObservableObject {
     }
 
     /// Runs the probe for one host immediately, outside the 30s cadence —
-    /// backs both the periodic refresh and the popover's "Test now" button.
+    /// backs both the periodic refresh and the popover's "Test Now" button.
     func testNow(alias: String) {
         if probeResults[alias] == nil {
             probeResults[alias] = ProbeResult(status: .unknown, detail: nil)

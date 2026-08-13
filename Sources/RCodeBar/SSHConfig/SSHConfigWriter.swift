@@ -18,14 +18,17 @@ enum SSHConfigWriter {
         let dir = (path as NSString).deletingLastPathComponent
         var isDir: ObjCBool = false
         if !FileManager.default.fileExists(atPath: dir, isDirectory: &isDir) {
-            guard (try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)) != nil else {
+            guard
+                (try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true))
+                    != nil
+            else {
                 throw SSHConfigWriterError.couldNotCreateDirectory
             }
         }
         let content = """
-        Host \(alias)
-             RemoteForward 47000 127.0.0.1:47000
-        """ + "\n"
+            Host \(alias)
+                 RemoteForward 47000 127.0.0.1:47000
+            """ + "\n"
         try content.write(toFile: path, atomically: true, encoding: .utf8)
         return path
     }

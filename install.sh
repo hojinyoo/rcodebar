@@ -69,13 +69,17 @@ ${suggested_file}, alongside your existing Host config.d files):
 
     ${snippet}
 
+A file under config.d/ only counts if ~/.ssh/config includes it
+('Include ~/.ssh/config.d/*'); otherwise put the line in the Host block
+in ~/.ssh/config itself.
+
 This script will NOT edit your ssh config. After adding it, drop any
 existing ControlMaster for the host so the new RemoteForward takes effect:
 
     ssh -O exit ${alias_name}
 
 Then reconnect (a fresh ssh/ControlMaster will carry the forward), and on
-the pod side, ship the patched cold-path script from this repo (shell/code)
-into your dotfiles yourself — install.sh does not touch
-your dotfile tree or ~/.ssh.
+the remote side, ship the patched cold-path script from this repo
+(shell/code) into your dotfiles yourself — install.sh does not touch your
+dotfiles or ~/.ssh.
 MSG
