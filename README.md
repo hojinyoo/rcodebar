@@ -164,7 +164,7 @@ defaults delete RCodeBar                              # cleanup
 ```
 
 The unbundled SwiftPM binary has no bundle id, so it reads the UserDefaults
-domain `RCodeBar` while the packaged app reads `com.hojinyoo.rcodebar` —
+domain `RCodeBar` while the packaged app reads `dev.rcodebar.RCodeBar` —
 separate host lists, and the `defaults write` above keeps the dev instance
 from binding 47000. A launch argument won't do: `-autoOpenEnabled 0` lands in
 the argument domain as a string and the `Bool` read falls back to `true`.
@@ -176,7 +176,7 @@ and you're back to two apps fighting for the port.
 1. Turn "Start at Login" off in the popover (or remove RCodeBar in System
    Settings › General › Login Items), then Quit.
 2. `rm -rf ~/Applications/RCodeBar.app`
-3. `defaults delete com.hojinyoo.rcodebar` — hosts, display names, default
+3. `defaults delete dev.rcodebar.RCodeBar` — hosts, display names, default
    paths and the auto-open switch are all UserDefaults under that domain;
    there is no config file.
 4. Optional: `rm ~/.ssh/config.d/rcodebar-*` for any snippet the app wrote,

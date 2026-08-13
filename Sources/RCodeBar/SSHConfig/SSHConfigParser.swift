@@ -49,9 +49,9 @@ enum SSHConfigParser {
 
     /// `Host *` and other pure-wildcard-only entries are not real, connectable
     /// hosts — skip them. `ldev ldev*` offers the concrete first token
-    /// (`ldev`); `cys*` alone offers `cys` (this config's own convention: the
-    /// wildcard base is itself a valid alias). Anything left wildcarded on
-    /// both ends (`*_jupy*`) is a forwarding shortcut, not a host — skipped.
+    /// (`ldev`); `web*` alone offers `web`, on the common convention that the
+    /// wildcard base is itself a valid alias. Anything left wildcarded on
+    /// both ends (`*_relay*`) is a forwarding shortcut, not a host — skipped.
     static func concreteAlias(from tokens: [String]) -> String? {
         let globChars = CharacterSet(charactersIn: "*?[]!")
         guard !tokens.isEmpty, tokens != ["*"] else { return nil }

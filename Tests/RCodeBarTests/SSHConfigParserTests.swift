@@ -11,21 +11,21 @@ struct SSHConfigParserTests {
             Host *
                  ControlMaster auto
             """,
-            "~/.ssh/config.d/bionsight-pods": "Host ldev ldev*\n    HostName 10.244.5.18\n",
-            "~/.ssh/config.d/bionsight-servers": """
-            Host *_tyr
-                 ProxyJump tyr
+            "~/.ssh/config.d/remotes": "Host ldev ldev*\n    HostName 198.51.100.10\n",
+            "~/.ssh/config.d/servers": """
+            Host *_jump
+                 ProxyJump jump
 
             Host ldev*
-                 User jovyan
+                 User dev
 
-            Host cys*
-                 HostName 192.168.1.3
+            Host web*
+                 HostName 198.51.100.11
             """,
         ]
         let globResults: [String: [String]] = [
             "~/.ssh/config.local": [],
-            "~/.ssh/config.d/*": ["~/.ssh/config.d/bionsight-pods", "~/.ssh/config.d/bionsight-servers"],
+            "~/.ssh/config.d/*": ["~/.ssh/config.d/remotes", "~/.ssh/config.d/servers"],
         ]
 
         let hosts = SSHConfigParser.discoverHosts(
@@ -36,9 +36,9 @@ struct SSHConfigParserTests {
 
         // "Host *" excluded; "ldev ldev*" -> concrete first token "ldev",
         // deduped against the second file's "ldev*" -> also "ldev";
-        // "*_tyr" has no concrete or strippable token -> skipped;
-        // "cys*" -> stripped to "cys".
-        #expect(hosts == ["ldev", "cys"])
+        // "*_jump" has no concrete or strippable token -> skipped;
+        // "web*" -> stripped to "web".
+        #expect(hosts == ["ldev", "web"])
     }
 
     @Test func skipsMissingIncludedFiles() {
@@ -55,7 +55,7 @@ struct SSHConfigParserTests {
     }
 
     @Test func concreteAliasStripsTrailingWildcardWhenNoConcreteToken() {
-        #expect(SSHConfigParser.concreteAlias(from: ["cys*"]) == "cys")
+        #expect(SSHConfigParser.concreteAlias(from: ["web*"]) == "web")
     }
 
     @Test func concreteAliasSkipsBareWildcard() {
@@ -63,10 +63,10 @@ struct SSHConfigParserTests {
     }
 
     @Test func concreteAliasSkipsDoublyWildcardedPattern() {
-        #expect(SSHConfigParser.concreteAlias(from: ["*_jupy*"]) == nil)
+        #expect(SSHConfigParser.concreteAlias(from: ["*_relay*"]) == nil)
     }
 
     @Test func concreteAliasSkipsLeadingWildcardPattern() {
-        #expect(SSHConfigParser.concreteAlias(from: ["*_tyr"]) == nil)
+        #expect(SSHConfigParser.concreteAlias(from: ["*_jump"]) == nil)
     }
 }

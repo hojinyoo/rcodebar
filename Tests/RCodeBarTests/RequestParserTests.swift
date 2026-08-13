@@ -2,11 +2,11 @@ import Testing
 @testable import RCodeBar
 
 struct RequestParserTests {
-    let whitelist: Set<String> = ["ldev", "otherpod"]
+    let whitelist: Set<String> = ["ldev", "other"]
 
     @Test func acceptsWhitelistedHost() {
-        let result = RequestParser.parse("vscode://vscode-remote/ssh-remote+ldev/home/jovyan/project", whitelist: whitelist)
-        #expect(result == .ok(host: "ldev", uri: "vscode://vscode-remote/ssh-remote+ldev/home/jovyan/project"))
+        let result = RequestParser.parse("vscode://vscode-remote/ssh-remote+ldev/home/dev/project", whitelist: whitelist)
+        #expect(result == .ok(host: "ldev", uri: "vscode://vscode-remote/ssh-remote+ldev/home/dev/project"))
     }
 
     @Test func rejectsUnknownHost() {

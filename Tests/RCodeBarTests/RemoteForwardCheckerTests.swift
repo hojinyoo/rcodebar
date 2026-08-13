@@ -2,11 +2,11 @@ import Testing
 @testable import RCodeBar
 
 struct RemoteForwardCheckerTests {
-    // Fixture: real `ssh -G ldev` output captured with the RemoteForward wired up.
+    // Fixture: real `ssh -G <host>` output captured with the RemoteForward wired up.
     private let sshGOutputWithForward = """
     host ldev
-    user jovyan
-    hostname 10.244.5.18
+    user dev
+    hostname 198.51.100.10
     port 22
     controlmaster auto
     remoteforward 47000 [127.0.0.1]:47000
@@ -15,8 +15,8 @@ struct RemoteForwardCheckerTests {
 
     private let sshGOutputWithoutForward = """
     host ldev
-    user jovyan
-    hostname 10.244.5.18
+    user dev
+    hostname 198.51.100.10
     port 22
     controlmaster auto
     identityfile ~/.ssh/id_rsa

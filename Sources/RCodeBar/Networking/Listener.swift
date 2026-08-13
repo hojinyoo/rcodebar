@@ -3,7 +3,7 @@ import Network
 import AppKit
 import OSLog
 
-private let log = Logger(subsystem: "com.hojinyoo.rcodebar", category: "listener")
+private let log = Logger(subsystem: "dev.rcodebar.RCodeBar", category: "listener")
 
 /// Owns the TCP channel the remote's `code` talks to. Bound to loopback only
 /// — never widen this to all interfaces, the remote is assumed multi-user.

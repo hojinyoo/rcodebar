@@ -10,7 +10,7 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 alias_name="${1:-ldev}"
 
 app_name="RCodeBar"
-bundle_id="com.hojinyoo.rcodebar"
+bundle_id="dev.rcodebar.RCodeBar"
 dest="$HOME/Applications/${app_name}.app"
 
 echo "== building ${app_name} (release) =="
