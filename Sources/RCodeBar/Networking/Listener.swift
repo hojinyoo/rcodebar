@@ -1,6 +1,6 @@
+import AppKit
 import Foundation
 import Network
-import AppKit
 import OSLog
 
 private let log = Logger(subsystem: "dev.rcodebar.RCodeBar", category: "listener")
@@ -59,7 +59,8 @@ final class Listener {
     }
 
     private func receive(_ connection: NWConnection, buffer: LineBuffer) {
-        connection.receive(minimumIncompleteLength: 1, maximumLength: LineBuffer.capBytes) { [weak self] data, _, isComplete, error in
+        connection.receive(minimumIncompleteLength: 1, maximumLength: LineBuffer.capBytes) {
+            [weak self] data, _, isComplete, error in
             Task { @MainActor in
                 guard let self else { return }
                 var buffer = buffer
@@ -103,8 +104,10 @@ final class Listener {
 
     private func respond(_ message: String, on connection: NWConnection) {
         let data = Data("\(message)\n".utf8)
-        connection.send(content: data, completion: .contentProcessed { _ in
-            connection.cancel()
-        })
+        connection.send(
+            content: data,
+            completion: .contentProcessed { _ in
+                connection.cancel()
+            })
     }
 }

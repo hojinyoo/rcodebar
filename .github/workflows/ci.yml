@@ -17,11 +17,19 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: swift test
-      # The scripts are half the install story and nothing else compiles them.
-      - run: bash -n install.sh scripts/e2e_test.sh shell/code
+
+  lint:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+      # swift-format ships with the toolchain; nothing to install.
+      - run: swift format lint --recursive --strict Sources Tests
+      # The scripts are half the install story and nothing else checks them.
+      # -S warning drops SC2012-style style notes on the deliberate `ls -t`.
+      - run: shellcheck -S warning install.sh scripts/e2e_test.sh shell/code
 
   release:
-    needs: test
+    needs: [test, lint]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-15
     permissions:

@@ -2,7 +2,7 @@ import Foundation
 
 struct ProbeResult: Equatable {
     var status: HostStatus
-    var detail: String? // ssh's stderr tail, only set when status isn't green
+    var detail: String?  // ssh's stderr tail, only set when status isn't green
 }
 
 /// Per-host tunnel probe:

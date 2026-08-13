@@ -1,5 +1,5 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 struct MenuContent: View {
     @ObservedObject var state: AppState
@@ -25,20 +25,25 @@ struct MenuContent: View {
                 Text("Auto-open remote windows")
                     .font(.headline)
                 Spacer()
-                Toggle("Auto-open remote windows", isOn: Binding(
-                    get: { state.store.autoOpenEnabled },
-                    set: { _ in state.toggleAutoOpen() }
-                ))
+                Toggle(
+                    "Auto-open remote windows",
+                    isOn: Binding(
+                        get: { state.store.autoOpenEnabled },
+                        set: { _ in state.toggleAutoOpen() }
+                    )
+                )
                 .toggleStyle(.switch)
                 .labelsHidden()
                 .controlSize(.small)
             }
-            Text(state.listener.isRunning
-                 ? "Listening on 127.0.0.1:47000"
-                 : "Stopped — the remote falls back to a clickable link")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            Text(
+                state.listener.isRunning
+                    ? "Listening on 127.0.0.1:47000"
+                    : "Stopped — the remote falls back to a clickable link"
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
         }
         .padding(12)
     }

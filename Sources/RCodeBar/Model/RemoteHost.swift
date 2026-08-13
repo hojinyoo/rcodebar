@@ -1,10 +1,10 @@
 import Foundation
 
 enum HostStatus: Equatable {
-    case green   // tunnel up end to end
-    case amber   // ssh works, RemoteForward missing
-    case grey    // no ssh connection
-    case unknown // not probed yet
+    case green  // tunnel up end to end
+    case amber  // ssh works, RemoteForward missing
+    case grey  // no ssh connection
+    case unknown  // not probed yet
 
     var label: String {
         switch self {
@@ -32,8 +32,10 @@ struct RemoteHost: Codable, Identifiable, Equatable {
         return trimmed.isEmpty ? alias : trimmed
     }
 
-    init(alias: String, displayName: String? = nil, defaultPath: String? = nil, enabled: Bool = true,
-         lastOpenDate: Date? = nil, lastOpenPath: String? = nil) {
+    init(
+        alias: String, displayName: String? = nil, defaultPath: String? = nil, enabled: Bool = true,
+        lastOpenDate: Date? = nil, lastOpenPath: String? = nil
+    ) {
         self.alias = alias
         self.displayName = displayName
         self.defaultPath = defaultPath

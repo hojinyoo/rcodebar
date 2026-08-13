@@ -1,5 +1,5 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 struct HostRow: View {
     @ObservedObject var state: AppState
@@ -86,10 +86,11 @@ struct HostRow: View {
             Button("Remove Host", role: .destructive, action: onRemove)
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("""
-            RCodeBar will stop opening windows for \(host.alias), and its display name and \
-            default path are forgotten. Your ssh config is left untouched.
-            """)
+            Text(
+                """
+                RCodeBar will stop opening windows for \(host.alias), and its display name and \
+                default path are forgotten. Your ssh config is left untouched.
+                """)
         }
     }
 
@@ -146,10 +147,13 @@ struct HostRow: View {
                 }
                 GridRow {
                     Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
-                    Toggle("Allow auto-open", isOn: Binding(
-                        get: { host.enabled },
-                        set: { state.store.setEnabled(alias: host.alias, enabled: $0) }
-                    ))
+                    Toggle(
+                        "Allow auto-open",
+                        isOn: Binding(
+                            get: { host.enabled },
+                            set: { state.store.setEnabled(alias: host.alias, enabled: $0) }
+                        )
+                    )
                     .help("A disabled host is rejected by the listener exactly like an unknown one.")
                 }
             }
@@ -213,9 +217,10 @@ struct HostRow: View {
                         .foregroundStyle(.orange)
                     HStack(spacing: 6) {
                         Button("Add RemoteForward…") { showAddForwardConfirm = true }
-                        Button(copied ? "Copied" : "Copy Snippet",
-                               systemImage: copied ? "checkmark" : "doc.on.doc",
-                               action: copySnippet)
+                        Button(
+                            copied ? "Copied" : "Copy Snippet",
+                            systemImage: copied ? "checkmark" : "doc.on.doc",
+                            action: copySnippet)
                     }
                 }
             }
@@ -229,22 +234,24 @@ struct HostRow: View {
             Button("Write File") { addRemoteForward() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("""
-            Creates a new file (does not edit any existing one):
+            Text(
+                """
+                Creates a new file (does not edit any existing one):
 
-            Host \(host.alias)
-                 RemoteForward 47000 127.0.0.1:47000
+                Host \(host.alias)
+                     RemoteForward 47000 127.0.0.1:47000
 
-            You'll still need to run `ssh -O exit \(host.alias)` and reconnect \
-            for an existing ControlMaster to pick up the new forward.
-            """)
+                You'll still need to run `ssh -O exit \(host.alias)` and reconnect \
+                for an existing ControlMaster to pick up the new forward.
+                """)
         }
     }
 
     private func addRemoteForward() {
         switch state.addRemoteForward(alias: host.alias) {
         case .success(let path):
-            addForwardMessage = "Wrote \(path).\nRun `ssh -O exit \(host.alias)` then reconnect to pick it up."
+            addForwardMessage =
+                "Wrote \(path).\nRun `ssh -O exit \(host.alias)` then reconnect to pick it up."
         case .failure(let error):
             addForwardMessage = "Failed: \(error)"
         }

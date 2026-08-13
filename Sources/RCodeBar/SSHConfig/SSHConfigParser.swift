@@ -1,5 +1,5 @@
-import Foundation
 import Darwin
+import Foundation
 
 /// Discovers host aliases by parsing ~/.ssh/config and following `Include`
 /// directives — the same files ssh itself reads, so this stays in sync with

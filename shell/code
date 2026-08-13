@@ -32,6 +32,8 @@ if [ -n "$bin" ]; then
   if [ -n "${VSCODE_IPC_HOOK_CLI:-}" ] && probe "$VSCODE_IPC_HOOK_CLI"; then
     exec "$bin" "$@"
   fi
+  # shellcheck disable=SC2045
+  # Newest socket first is the whole point; a glob can't sort by mtime.
   for sock in $(ls -t /tmp/vscode-ipc-*.sock "/run/user/$(id -u)"/vscode-ipc-*.sock 2>/dev/null); do
     [ -O "$sock" ] || continue          # never touch another user's socket
     probe "$sock"; rc=$?
@@ -60,6 +62,7 @@ done
 
 host="${RCODE_HOST:-$(cat "$HOME/.rcode.host" 2>/dev/null || true)}"
 if [ -z "$host" ]; then
+  # shellcheck disable=SC2088  # prose for the reader, not a path to expand
   err "~/.rcode.host missing — put your Mac-side ssh alias for this host in it:"
   err "  echo ldev > ~/.rcode.host   # = the Host you 'ssh <alias>' with FROM the Mac, not this machine's hostname"
   exit 1

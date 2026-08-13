@@ -1,5 +1,5 @@
-import Foundation
 import Combine
+import Foundation
 
 /// UserDefaults-backed settings and host list — no config file.
 @MainActor
@@ -70,7 +70,8 @@ final class HostStore: ObservableObject {
 
     private static func load(from defaults: UserDefaults) -> [RemoteHost] {
         guard let data = defaults.data(forKey: Keys.hosts),
-              let decoded = try? JSONDecoder().decode([RemoteHost].self, from: data) else {
+            let decoded = try? JSONDecoder().decode([RemoteHost].self, from: data)
+        else {
             return []
         }
         return decoded
