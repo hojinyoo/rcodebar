@@ -15,7 +15,7 @@ jobs:
   test:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: swift test
       # The scripts are half the install story and nothing else compiles them.
       - run: bash -n install.sh scripts/e2e_test.sh shell/code
@@ -27,7 +27,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # install.sh already builds, packages and signs; don't restate the bundle here.
       - run: ./install.sh
       - run: ditto -c -k --keepParent "$HOME/Applications/RCodeBar.app" RCodeBar.zip
