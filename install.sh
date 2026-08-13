@@ -79,7 +79,7 @@ existing ControlMaster for the host so the new RemoteForward takes effect:
     ssh -O exit ${alias_name}
 
 Then reconnect (a fresh ssh/ControlMaster will carry the forward), and on
-the pod side, ship the patched cold-path script from this repo (shell/code)
-into your chezmoi dotfiles yourself — install.sh does not touch
-~/.local/share/chezmoi or ~/.ssh.
+the remote side, ship the patched cold-path script from this repo
+(shell/code) into your dotfiles yourself — install.sh does not touch your
+dotfiles or ~/.ssh.
 MSG

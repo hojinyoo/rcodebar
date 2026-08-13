@@ -1,7 +1,7 @@
 # RCodeBar
 
-`code .` on a remote pod opens a local VS Code window on that exact path — no
-pre-attached session, no unwanted `/home/jovyan` window. A menu bar app on
+`code .` on a remote host opens a local VS Code window on that exact path — no
+pre-attached session, no unwanted home-directory window. A menu bar app on
 the Mac owns the channel and shows per-host tunnel status.
 
 ## Requirements
@@ -13,12 +13,12 @@ the Mac owns the channel and shows per-host tunnel status.
 - VS Code on the Mac with the Remote - SSH extension. RCodeBar only hands
   `vscode://vscode-remote/ssh-remote+…` URIs to `NSWorkspace.open`; VS Code
   does the connecting.
-- ssh access to the pod from the Mac under a `Host` alias, and `bash` on the
-  pod (both `shell/code` and the status probe use bash's `/dev/tcp`).
+- ssh access to the remote from the Mac under a `Host` alias, and `bash`
+  there (both `shell/code` and the status probe use bash's `/dev/tcp`).
 
 ## How it works
 
-- `code` on the pod (`shell/code`, patched cold path only) tries the hot
+- `code` on the remote (`shell/code`, patched cold path only) tries the hot
   path first (an already-live VS Code IPC socket) exactly as before.
 - If there's no live window, it now tries a TCP send to
   `127.0.0.1:47000` — the port end of an ssh `RemoteForward` back to the Mac.
@@ -67,11 +67,11 @@ for the alias. It never edits your ssh config for you.
      after a successful write, that's why.
 4. Drop the existing ControlMaster so the new forward takes effect:
    `ssh -O exit <host-alias>`. Reconnect (any new ssh session, or just run
-   `code .` on the pod) to pick up the forward.
-5. Ship the patched pod-side script (`shell/code` in this repo) into your
-   dotfiles yourself, replacing the pod's `code` command, and put the
-   Mac-side alias in the pod's `~/.rcode.host` (or `$RCODE_HOST`). This repo
-   does not touch `~/.local/share/chezmoi` or `~/.ssh` — that roll-in is a
+   `code .` on the remote) to pick up the forward.
+5. Ship the patched remote-side script (`shell/code` in this repo) into your
+   dotfiles yourself, replacing the remote's `code` command, and put the
+   Mac-side alias in the remote's `~/.rcode.host` (or `$RCODE_HOST`). This
+   repo does not touch your dotfiles or `~/.ssh` — that roll-in is a
    separate step you do.
 6. Optionally turn on "Start at Login" at the bottom of the popover. macOS
    owns that list: verify (or revoke) it in System Settings › General ›
@@ -96,7 +96,7 @@ Clicking the row expands it:
 - **Display name** — cosmetic only, defaults to the alias. Edits commit as
   you type, so closing the popover can't drop them.
 - **Default path** + **Open** — opens that path on that host directly from
-  the Mac, without going through the pod at all. Handy for testing.
+  the Mac, without going through the remote at all. Handy for testing.
 - **Allow auto-open** — off means the listener rejects that host exactly
   like an unknown one (`ERR unknown host`) and the row reads "Disabled";
   it's still in your list, just inert.
@@ -127,7 +127,7 @@ Statuses are refreshed every 30s and whenever you open the popover:
   down/auth).
 - ○ **Checking…** — not probed yet.
 
-If `code .` on the pod prints the clickable link instead of silently
+If `code .` on the remote prints the clickable link instead of silently
 opening a window:
 
 1. Check RCodeBar is running and "Auto-open remote windows" is on — that
@@ -135,8 +135,8 @@ opening a window:
    "Listening on 127.0.0.1:47000".
 2. Check the host's row is Connected, and that **Allow auto-open** is on for
    it.
-3. On the pod, confirm `~/.rcode.host` has the right alias (the ssh `Host`
-   you connect with **from the Mac**, not the pod's own hostname).
+3. On the remote, confirm `~/.rcode.host` has the right alias (the ssh `Host`
+   you connect with **from the Mac**, not the remote's own hostname).
 4. If the channel send times out or connection-refuses, that's expected —
    the printed link is the always-available fallback, not a bug.
 
@@ -180,5 +180,5 @@ and you're back to two apps fighting for the port.
    paths and the auto-open switch are all UserDefaults under that domain;
    there is no config file.
 4. Optional: `rm ~/.ssh/config.d/rcodebar-*` for any snippet the app wrote,
-   and drop the pod's `~/.rcode.host` and patched `code` script. Removing
+   and drop the remote's `~/.rcode.host` and patched `code` script. Removing
    the app does none of this for you.

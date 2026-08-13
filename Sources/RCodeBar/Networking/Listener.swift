@@ -5,8 +5,8 @@ import OSLog
 
 private let log = Logger(subsystem: "com.hojinyoo.rcodebar", category: "listener")
 
-/// Owns the TCP channel the pod's `code` talks to. Bound to loopback only —
-/// never widen this to all interfaces, the pod is assumed multi-user.
+/// Owns the TCP channel the remote's `code` talks to. Bound to loopback only
+/// — never widen this to all interfaces, the remote is assumed multi-user.
 @MainActor
 final class Listener {
     static let port: NWEndpoint.Port = 47000

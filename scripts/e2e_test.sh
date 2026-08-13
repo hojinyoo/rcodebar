@@ -10,7 +10,7 @@
 #   2. a URI for a host guaranteed not registered -> expects "ERR unknown host"
 #
 # macOS ships bash 3.2 (no /dev/tcp support), so this uses python3 — already
-# a hard requirement on the pod side and preinstalled on macOS.
+# a hard requirement on the remote side and preinstalled on macOS.
 set -euo pipefail
 
 host="${1:?usage: e2e_test.sh <registered-host> [path]}"

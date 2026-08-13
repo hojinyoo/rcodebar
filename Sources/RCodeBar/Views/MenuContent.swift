@@ -35,7 +35,7 @@ struct MenuContent: View {
             }
             Text(state.listener.isRunning
                  ? "Listening on 127.0.0.1:47000"
-                 : "Stopped — the pod falls back to a clickable link")
+                 : "Stopped — the remote falls back to a clickable link")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

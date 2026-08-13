@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# code — open a path in local VS Code from any pod shell (ssh/tmux).
+# code — open a path in local VS Code from any remote shell (ssh/tmux).
 #
 # Preferred loop:
 #   Mac:    rcode          # attach Remote-SSH once
@@ -12,7 +12,8 @@
 # the RemoteForward), which asks the Mac to open the window directly. If that
 # fails or isn't wired up, fall back to printing a cmd-clickable vscode://
 # link (OSC-8 + bare URI). Needs the Mac-side ssh alias in ~/.rcode.host (or
-# $RCODE_HOST); the pod hostname is NOT the alias, never derived from it. Or
+# $RCODE_HOST); this machine's hostname is NOT the alias, never derived from
+# it. Or
 # run `rcode` on the Mac to attach a window, then retry `code .` here.
 set -uo pipefail
 
@@ -52,15 +53,15 @@ fi
 for a in "$@"; do
   case "$a" in
     --) break ;;                        # end-of-flags terminator; rest are paths
-    -*) err "no live VS Code window on this pod — '$a' needs one. Open a window first (or drop the flag)."
+    -*) err "no live VS Code window on this host — '$a' needs one. Open a window first (or drop the flag)."
         exit 1;;
   esac
 done
 
 host="${RCODE_HOST:-$(cat "$HOME/.rcode.host" 2>/dev/null || true)}"
 if [ -z "$host" ]; then
-  err "~/.rcode.host missing — put your Mac-side ssh alias for this pod in it:"
-  err "  echo ldev > ~/.rcode.host   # = the Host you 'ssh <alias>' with FROM the Mac, not this pod's hostname"
+  err "~/.rcode.host missing — put your Mac-side ssh alias for this host in it:"
+  err "  echo ldev > ~/.rcode.host   # = the Host you 'ssh <alias>' with FROM the Mac, not this machine's hostname"
   exit 1
 fi
 

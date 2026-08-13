@@ -137,7 +137,7 @@ struct HostRow: View {
                     Text("Default path")
                         .font(.caption)
                     HStack(spacing: 6) {
-                        EditableField(prompt: "/home/jovyan/project", value: host.defaultPath ?? "") {
+                        EditableField(prompt: "/home/you/project", value: host.defaultPath ?? "") {
                             state.store.setDefaultPath(alias: host.alias, path: $0)
                         }
                         Button("Open") { state.openNow(host: host) }
