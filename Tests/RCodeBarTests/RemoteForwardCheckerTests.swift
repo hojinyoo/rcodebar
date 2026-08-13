@@ -5,7 +5,7 @@ import Testing
 struct RemoteForwardCheckerTests {
     // Fixture: real `ssh -G <host>` output captured with the RemoteForward wired up.
     private let sshGOutputWithForward = """
-        host ldev
+        host myhost
         user dev
         hostname 198.51.100.10
         port 22
@@ -15,7 +15,7 @@ struct RemoteForwardCheckerTests {
         """
 
     private let sshGOutputWithoutForward = """
-        host ldev
+        host myhost
         user dev
         hostname 198.51.100.10
         port 22

@@ -33,7 +33,7 @@ URI. The menu bar icon shows how many are currently connected.
 ## Install
 
 ```
-./install.sh [host-alias]   # default alias: ldev
+./install.sh [host-alias]   # default alias: myhost
 ```
 
 Builds, packages `~/Applications/RCodeBar.app` (ad-hoc signed, hardened

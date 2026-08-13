@@ -3,12 +3,13 @@ import Testing
 @testable import RCodeBar
 
 struct RequestParserTests {
-    let whitelist: Set<String> = ["ldev", "other"]
+    let whitelist: Set<String> = ["myhost", "other"]
 
     @Test func acceptsWhitelistedHost() {
         let result = RequestParser.parse(
-            "vscode://vscode-remote/ssh-remote+ldev/home/dev/project", whitelist: whitelist)
-        #expect(result == .ok(host: "ldev", uri: "vscode://vscode-remote/ssh-remote+ldev/home/dev/project"))
+            "vscode://vscode-remote/ssh-remote+myhost/home/dev/project", whitelist: whitelist)
+        #expect(
+            result == .ok(host: "myhost", uri: "vscode://vscode-remote/ssh-remote+myhost/home/dev/project"))
     }
 
     @Test func rejectsUnknownHost() {
@@ -18,12 +19,12 @@ struct RequestParserTests {
     }
 
     @Test func rejectsWrongPrefix() {
-        let result = RequestParser.parse("http://evil.example/ssh-remote+ldev/x", whitelist: whitelist)
+        let result = RequestParser.parse("http://evil.example/ssh-remote+myhost/x", whitelist: whitelist)
         #expect(result == .err("invalid uri"))
     }
 
     @Test func rejectsMissingPathAfterHost() {
-        let result = RequestParser.parse("vscode://vscode-remote/ssh-remote+ldev", whitelist: whitelist)
+        let result = RequestParser.parse("vscode://vscode-remote/ssh-remote+myhost", whitelist: whitelist)
         #expect(result == .err("invalid uri"))
     }
 
@@ -34,8 +35,8 @@ struct RequestParserTests {
     }
 
     @Test func hostMatchIsExact() {
-        // "ldev2" must not match the "ldev" whitelist entry.
-        let result = RequestParser.parse("vscode://vscode-remote/ssh-remote+ldev2/x", whitelist: whitelist)
+        // "myhost2" must not match the "myhost" whitelist entry.
+        let result = RequestParser.parse("vscode://vscode-remote/ssh-remote+myhost2/x", whitelist: whitelist)
         #expect(result == .err("unknown host"))
     }
 }

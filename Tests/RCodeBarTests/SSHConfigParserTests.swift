@@ -12,12 +12,12 @@ struct SSHConfigParserTests {
             Host *
                  ControlMaster auto
             """,
-            "~/.ssh/config.d/remotes": "Host ldev ldev*\n    HostName 198.51.100.10\n",
+            "~/.ssh/config.d/remotes": "Host myhost myhost*\n    HostName 198.51.100.10\n",
             "~/.ssh/config.d/servers": """
             Host *_jump
                  ProxyJump jump
 
-            Host ldev*
+            Host myhost*
                  User dev
 
             Host web*
@@ -35,11 +35,11 @@ struct SSHConfigParserTests {
             expandGlob: { globResults[$0] ?? [] }
         )
 
-        // "Host *" excluded; "ldev ldev*" -> concrete first token "ldev",
-        // deduped against the second file's "ldev*" -> also "ldev";
+        // "Host *" excluded; "myhost myhost*" -> concrete first token "myhost",
+        // deduped against the second file's "myhost*" -> also "myhost";
         // "*_jump" has no concrete or strippable token -> skipped;
         // "web*" -> stripped to "web".
-        #expect(hosts == ["ldev", "web"])
+        #expect(hosts == ["myhost", "web"])
     }
 
     @Test func skipsMissingIncludedFiles() {
@@ -52,7 +52,7 @@ struct SSHConfigParserTests {
     }
 
     @Test func concreteAliasPrefersFullyConcreteToken() {
-        #expect(SSHConfigParser.concreteAlias(from: ["ldev", "ldev*"]) == "ldev")
+        #expect(SSHConfigParser.concreteAlias(from: ["myhost", "myhost*"]) == "myhost")
     }
 
     @Test func concreteAliasStripsTrailingWildcardWhenNoConcreteToken() {

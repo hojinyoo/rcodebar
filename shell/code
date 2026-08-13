@@ -64,7 +64,7 @@ host="${RCODE_HOST:-$(cat "$HOME/.rcode.host" 2>/dev/null || true)}"
 if [ -z "$host" ]; then
   # shellcheck disable=SC2088  # prose for the reader, not a path to expand
   err "~/.rcode.host missing — put your Mac-side ssh alias for this host in it:"
-  err "  echo ldev > ~/.rcode.host   # = the Host you 'ssh <alias>' with FROM the Mac, not this machine's hostname"
+  err "  echo myhost > ~/.rcode.host   # = the Host you 'ssh <alias>' with FROM the Mac, not this machine's hostname"
   exit 1
 fi
 

@@ -3,11 +3,11 @@
 # ssh config snippet needed to wire up a host's RemoteForward.
 #
 # Usage:
-#   ./install.sh [host-alias]     # default alias: ldev
+#   ./install.sh [host-alias]     # default alias: myhost
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-alias_name="${1:-ldev}"
+alias_name="${1:-myhost}"
 
 app_name="RCodeBar"
 bundle_id="dev.rcodebar.RCodeBar"
