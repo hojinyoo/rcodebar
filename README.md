@@ -27,8 +27,9 @@ Mac owns the channel and shows per-host tunnel status.
 
 The listener is bound to loopback only, and opens a URI only when it carries
 the `vscode://vscode-remote/ssh-remote+` prefix **and** names a host you added
-in the popover. Every host shares the one port, since the host lives inside the
-URI. The menu bar icon shows how many are currently connected.
+in the popover — see [SECURITY.md](SECURITY.md) for the full trust model. Every
+host shares the one port, since the host lives inside the URI. The menu bar icon
+shows how many are currently connected.
 
 ## Install
 

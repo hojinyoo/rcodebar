@@ -2,7 +2,8 @@
 # code — open a path in local VS Code from any remote shell (ssh/tmux).
 #
 # Preferred loop:
-#   Mac:    rcode          # attach Remote-SSH once
+#   Mac:    attach one Remote-SSH window — RCodeBar's per-host "Open", or
+#           `code --remote ssh-remote+<alias> <path>`
 #   remote: code .         # open path in that window (this script)
 #
 # Reuse path: a Remote-SSH window is already connected — find its live IPC
@@ -13,8 +14,7 @@
 # fails or isn't wired up, fall back to printing a cmd-clickable vscode://
 # link (OSC-8 + bare URI). Needs the Mac-side ssh alias in ~/.rcode.host (or
 # $RCODE_HOST); this machine's hostname is NOT the alias, never derived from
-# it. Or
-# run `rcode` on the Mac to attach a window, then retry `code .` here.
+# it. Or attach a window from the Mac as above, then retry `code .` here.
 set -uo pipefail
 
 err() { echo "code: $*" >&2; }
