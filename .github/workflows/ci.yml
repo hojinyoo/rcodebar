@@ -18,18 +18,24 @@ jobs:
       - uses: actions/checkout@v5
       - run: swift test
 
-  lint:
+  format:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v5
       # swift-format ships with the toolchain; nothing to install.
       - run: swift format lint --recursive --strict Sources Tests
-      # The scripts are half the install story and nothing else checks them.
-      # -S warning drops SC2012-style style notes on the deliberate `ls -t`.
+
+  shell:
+    # The scripts are half the install story and nothing else checks them.
+    # Ubuntu, not macOS: shellcheck is preinstalled here and bills at 1x.
+    # -S warning drops style notes on the deliberate `ls -t`.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
       - run: shellcheck -S warning install.sh scripts/e2e_test.sh shell/code
 
   release:
-    needs: [test, lint]
+    needs: [test, format, shell]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-15
     permissions:
