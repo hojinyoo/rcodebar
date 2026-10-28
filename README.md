@@ -7,8 +7,9 @@ Mac owns the channel and shows per-host tunnel status.
 ## Requirements
 
 - macOS 14 or later.
-- A Swift toolchain (Xcode or the Command Line Tools) — `install.sh` builds
-  from source.
+- A Swift toolchain (Xcode or the Command Line Tools) — only to build from
+  source; [Releases](https://github.com/hojinyoo/rcodebar/releases/latest)
+  carries a signed, notarized binary.
 - VS Code on the Mac with the Remote - SSH extension; it does the connecting.
 - ssh access to the remote under a `Host` alias, and `bash` there — both
   `shell/code` and the status probe use bash's `/dev/tcp`.
@@ -32,6 +33,13 @@ host shares the one port, since the host lives inside the URI. The menu bar icon
 shows how many are currently connected.
 
 ## Install
+
+Prebuilt: download `RCodeBar.zip` from
+[Releases](https://github.com/hojinyoo/rcodebar/releases/latest), unzip, and
+move `RCodeBar.app` to `/Applications` — Developer ID signed and notarized,
+so Gatekeeper opens it without ceremony.
+
+Or build from source:
 
 ```
 ./install.sh [host-alias]   # default alias: myhost
