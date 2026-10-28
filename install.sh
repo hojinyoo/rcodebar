@@ -4,6 +4,9 @@
 #
 # Usage:
 #   ./install.sh [host-alias]     # default alias: myhost
+#
+# CODESIGN_IDENTITY signs with that identity instead of ad hoc; the release
+# workflow passes its Developer ID through it.
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -51,8 +54,8 @@ cat > "$dest/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-echo "== codesigning (ad hoc, hardened runtime, sandbox off) =="
-codesign --force --sign - --options runtime "$dest"
+echo "== codesigning (${CODESIGN_IDENTITY:-ad hoc}, hardened runtime, sandbox off) =="
+codesign --force --sign "${CODESIGN_IDENTITY:--}" --options runtime "$dest"
 
 echo "== installed: $dest =="
 echo "Launch it once (open \"$dest\") and add \"${alias_name}\" from the popover."
