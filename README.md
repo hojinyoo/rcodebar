@@ -144,8 +144,10 @@ shellcheck -S warning install.sh scripts/e2e_test.sh shell/code
 `swift format` ships with the toolchain and reads `.swift-format` (4-space
 indent, 110 columns). shellcheck is the one extra install; the two
 suppressions in `shell/code` are deliberate and carry their reason inline.
-Tagging `v*` builds, signs and attaches a zipped `.app` to a GitHub release —
-ad-hoc signed and unnotarized, so downloaders must clear the quarantine flag.
+Tagging `v*` runs `.github/workflows/release.yml`: it signs the `.app` with
+the Developer ID from the repository secrets, notarizes and staples it, and
+attaches `RCodeBar.zip` and its `.sha256` to the release. The secrets it needs
+are listed at the top of that file.
 
 ## Uninstall
 
